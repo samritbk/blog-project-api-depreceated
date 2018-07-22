@@ -10,12 +10,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static spark.Spark.*;
 
-public class HelloWorld implements PostInterface {
+public class Main implements PostInterface {
 
 
 
@@ -38,7 +39,6 @@ public class HelloWorld implements PostInterface {
 
 
         connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS);
-
 
         get("/posts/:limit", (req, res) -> { // post/LIMIT
 
@@ -134,6 +134,25 @@ public class HelloWorld implements PostInterface {
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
   }
 
+
+  public static void connectUsingJDBC(String JDBC_DRIVER, String DB_URL, String DB_USER, String DB_PASS){
+    //Connection connection=null;
+    try {
+      Class.forName(JDBC_DRIVER);
+      connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+
+    } catch (SQLException | ClassNotFoundException e) {
+      e.printStackTrace();
+      LOGGER.info(e.getCause().toString());
+
+    }
+  }
+
+  @Override
+  public void addPost(Integer postUserId, Integer postCategory, String postTitle, String postText) {
+    // JDBC of jdbc connection here
+
+  }
   private static List<Post> getListPosts(Connection connection, Integer limit) throws SQLException, NullPointerException {
 
     List<Post> postList= new ArrayList<>();
@@ -174,26 +193,5 @@ public class HelloWorld implements PostInterface {
     }
 
     return postList;
-  }
-
-
-  public static void connectUsingJDBC(String JDBC_DRIVER, String DB_URL, String DB_USER, String DB_PASS){
-    //Connection connection=null;
-
-    try {
-      Class.forName(JDBC_DRIVER);
-      connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-
-    } catch (SQLException | ClassNotFoundException e) {
-      e.printStackTrace();
-      LOGGER.info(e.getCause().toString());
-
-    }
-  }
-
-  @Override
-  public void addPost(Integer postUserId, Integer postCategory, String postTitle, String postText) {
-    // JDBC of jdbc connection here
-
   }
 }
