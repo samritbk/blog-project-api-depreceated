@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-mainClassName = 'hello.HelloWorld'
+mainClassName = 'info.beraki.blogproject.Main'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -14,6 +14,8 @@ dependencies {
     compile "com.sparkjava:spark-core:2.5"
     compile 'mysql:mysql-connector-java:6.0.+'
     compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.amazonaws:aws-java-sdk-polly:1.11.75'
+    compile group: 'org.json', name: 'json', version: '20090211'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
     testCompile "junit:junit:4.12"
 }

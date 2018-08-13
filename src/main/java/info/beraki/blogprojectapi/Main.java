@@ -1,16 +1,13 @@
-package hello;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import hello.Interface.PostInterface;
-import hello.Model.Post;
-import org.json.JSONException;
-import org.json.JSONObject;
-import spark.Spark;
+package info.beraki.blogprojectapi;
 
-import java.sql.*;
-import java.util.ArrayList;
+import com.google.gson.Gson;
+import info.beraki.blogprojectapi.Model.Post;
+import spark.Spark;
+import spark.utils.SparkUtils;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -18,75 +15,69 @@ import java.util.logging.Logger;
 import static spark.Spark.before;
 import static spark.Spark.options;
 
-public class Main implements PostInterface {
+public class Main extends PostHandling {
 
-  static final String JDBC_DRIVER = Config.JDBC_DRIVER;
-  static final String DB_USER = Config.DB_USER;
-  static final String DB_PASS = Config.DB_PASS;
-  static final String DB_URL = Config.DB_URL;
+  private static final String JDBC_DRIVER = Config.JDBC_DRIVER;
+  private static final String DB_USER = Config.DB_USER;
+  private static final String DB_PASS = Config.DB_PASS;
+  private static final String DB_URL = Config.DB_URL;
   private static Logger LOGGER = Logger.getLogger("Logging");
 
-  static Connection connection;
+  private static Connection connection;
 
   public static void main(String[] args) {
 
+      if(args.length != 0){
+        int port=Util.tryParse(args[0],8888);
+        Spark.port(port);
+            if(port == 8888)
+                LOGGER.info(port+"");
+      }
+
 
       Spark.get("/posts/limit/:limit", (req, res) -> { // post/LIMIT
-            String toReturn=null;
+          String toReturn=null;
           LOGGER.info("1");
           if(connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS)) {
-
+              String limitSplat = req.params(":limit");
               try {
-                  String limitSplat = req.params(":limit");
-
                   int limit=0;
-                      limit=tryParse(limitSplat); // PROBLEM
+                  limit= Util.tryParse(limitSplat,0); // PROBLEM
 
-                      res.type("application/json");
-
-                      if (limit != 0) {
-
-                          List<Post> listPosts;
-
-                          listPosts = getListPosts(connection, limit);
-
-                          toReturn = new Gson().toJson(listPosts);
-
-                      } else {
-                          LOGGER.info(limitSplat);
-                          toReturn = "{\"error\":1,\"message\":\"Limit problem\"}";
-                      }
+                  if (limit != 0) {
+                      List<Post> listPosts;
+                      listPosts = getListPosts(connection, limit);
+                      toReturn = new Gson().toJson(listPosts);
+                  } else {
+                      LOGGER.info(limitSplat);
+                      toReturn = new CustomException(1, "Limit Problem").toString();
+                  }
               }catch(NumberFormatException e){
                   System.out.println(e.getMessage() + e.getCause());
                   LOGGER.info(e.getCause().toString());
-                  toReturn="{\"error\":1,\"message\":\"Invalid limit\"}";
+                  toReturn = new CustomException(1, "Invalid Limit").toString();
               }catch (SQLException | NullPointerException e) {
                   System.out.println(e.getMessage() + e.getCause());
                   LOGGER.info(e.getCause().toString());
-                  toReturn="{\"error\":1,\"message\":\"SQL or Null pointer\"}";
+                  toReturn = new CustomException(1, "SQL or Null pointer execption").toString();
               }
           }else{
-             toReturn="{\"error\":1,\"message\":\"Database error\"}";
+             toReturn = new CustomException(1, "Database Error").toString();
           }
-
+          connection.close();
+          res.type("application/json");
           return toReturn;
         });
 
         Spark.get("/posts", (req, res) -> { // post/LIMIT
 
             String toReturn=null;
-
             if(connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS)) {
-
-
                 List<Post> listPosts = null;
                 if (connection != null) {
                     try {
-
                         listPosts = getListPosts(connection, 0);
-
                         if (listPosts == null) throw new NullPointerException("list is null");
-
                     } catch (SQLException | NullPointerException e) {
                         System.out.println(e.getMessage() + e.getCause());
                         LOGGER.info(e.getCause().toString());
@@ -94,33 +85,84 @@ public class Main implements PostInterface {
                 }
                 toReturn=new Gson().toJson(listPosts);
             }else{
-                toReturn="{\"error\":1,\"message\":\"Database error\"}";
+                toReturn=new CustomException(1, "Database Error").toString();;
             }
-            res.type("application/json");
 
+            connection.close();
+            res.type("application/json");
           return toReturn;
-        });
+      });
+
+      Spark.get("/signup/newuser", (req, res) -> { // post/LIMIT
+
+          String toReturn=null;
+          if(connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS)) {
+              List<Post> listPosts = null;
+              if (connection != null) {
+                  try {
+                      listPosts = getListPosts(connection, 0);
+                      if (listPosts == null) throw new NullPointerException("list is null");
+                  } catch (SQLException | NullPointerException e) {
+                      System.out.println(e.getMessage() + e.getCause());
+                      LOGGER.info(e.getCause().toString());
+                  }
+              }
+              toReturn=new Gson().toJson(listPosts);
+          }else{
+              toReturn=new CustomException(1, "Database Error").toString();;
+          }
+
+          connection.close();
+          res.type("application/json");
+          return toReturn;
+      });
+
+      Spark.get("/posts/id/:id", (req, res) -> { // post/LIMIT
+          String toReturn=null;
+          if(connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS)) {
+              List<Post> listPosts = null;
+              if (connection != null) {
+                  try {
+                      String idString =req.params(":id");
+                      int id= Util.tryParse(idString,0);
+                      listPosts = getPost(connection, id);
+                      if (listPosts == null) throw new NullPointerException("list is null");
+                  } catch (SQLException | NullPointerException e) {
+                      System.out.println(e.getMessage() + e.getCause());
+                      LOGGER.info(e.getCause().toString());
+                  }
+              }
+              toReturn=new Gson().toJson(listPosts);
+          }else{
+              toReturn=new CustomException(1, "Database error").toString();;
+          }
+
+          connection.close();
+          res.type("application/json");
+          return toReturn;
+      });
 
 
         Spark.get("/bye", (req, res) -> {
           UUID randomUUID= UUID.randomUUID();
           res.type("text/html");
+
           return randomUUID;
         });
 
-
-
-
         Spark.post("/post/add", (req, res) -> { // post/LIMIT
-            connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS);
+            String toReturn;
+
+            try{
+                connectUsingJDBC(JDBC_DRIVER, DB_URL, DB_USER, DB_PASS);
+                toReturn=handlePost(connection, req.body());
+            }catch (SQLException | ClassNotFoundException e){
+                toReturn = new CustomException(1, "SQL error").toString();
+            }
+            connection.close();
             res.type("application/json");
-            String a=handlePost(req.body());
-
-            LOGGER.info(a);
-
-            return a;
+            return toReturn;
         });
-
 
 
         Spark.before((req, res) -> {
@@ -130,10 +172,7 @@ public class Main implements PostInterface {
 
         });
 
-
-
-        options("/*",
-            (request, response) -> {
+        options("/*", (request, response) -> {
 
               String accessControlRequestHeaders = request
                       .headers("Access-Control-Request-Headers");
@@ -150,146 +189,23 @@ public class Main implements PostInterface {
               }
 
               return "OK";
-            });
+        });
 
-            before((request, response) ->
+        before((request, response) ->
                 response.header("Access-Control-Allow-Origin", "*"));
   }
 
 
-  public static boolean connectUsingJDBC(String JDBC_DRIVER, String DB_URL, String DB_USER, String DB_PASS){
+  public static boolean connectUsingJDBC(String JDBC_DRIVER, String DB_URL, String DB_USER, String DB_PASS) throws ClassNotFoundException, SQLException {
     boolean toReturn=false;
-    try {
-      Class.forName(JDBC_DRIVER);
-      connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-        toReturn=true;
-    } catch (SQLException | ClassNotFoundException e) {
-      e.printStackTrace();
-      LOGGER.info(e.getCause().toString());
 
-    }
+    Class.forName(JDBC_DRIVER);
+
+    connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+    if(connection.isValid(0))
+        toReturn=true;
+
     return toReturn;
   }
 
-  private static List<Post> getListPosts(Connection connection, int limit) throws SQLException, NullPointerException {
-
-    List<Post> postList= new ArrayList<>();
-
-    Statement statement =connection.createStatement();
-
-    String sql="SELECT * FROM posts";
-            sql+=" ORDER BY post_id DESC";
-                if(limit != 0){
-                  sql+=" LIMIT "+limit;
-                }
-
-    ResultSet resultSet= statement.executeQuery(sql);
-
-
-    while(resultSet.next()){
-      Post post=new Post();
-
-      Integer postId= resultSet.getInt("post_id");
-      String postTitle=resultSet.getString("post_title");
-      String postText=resultSet.getString("post_text");
-      Integer postCategory=resultSet.getInt("post_category");
-      Integer postUserId=resultSet.getInt("user_id");
-      Integer dateCreated=resultSet.getInt("date_created");
-      Integer lastModified=resultSet.getInt("last_modified");
-      Integer status=resultSet.getInt("status");
-
-      post.setPostId(postId);
-      post.setPostTitle(postTitle);
-      post.setPostText(postText);
-      post.setPostCategory(postCategory);
-      post.setPostUserId(postUserId);
-      post.setDateCreated(dateCreated);
-      post.setLastModified(lastModified);
-      post.setStatus(status);
-
-
-      postList.add(post);
-    }
-
-    return postList;
-  }
-
-  public static String handlePost(String reqBody){
-
-      String toReturn=null;
-
-      try {
-          JSONObject reqJsonObject=new JSONObject(reqBody);
-            Integer postUserId=reqJsonObject.getInt("postUserId");
-            Integer postCategory=reqJsonObject.getInt("postCategory");
-            String postTitle=mysql_real_escape_string(reqJsonObject.getString("postTitle"));
-            String postText=mysql_real_escape_string(reqJsonObject.getString("postText"));
-
-            toReturn = addPost(postUserId, postCategory, postTitle, postText);
-          LOGGER.info(toReturn);
-      } catch (Exception e) {
-          e.printStackTrace();
-          LOGGER.info(e.getMessage());
-      }
-
-      return toReturn;
-  }
-
-  public static String addPost(Integer postUserId, Integer postCategory, String postTitle, String postText) throws SQLException, Exception{
-
-
-
-      Statement statement =connection.createStatement();
-
-      String sql="INSERT INTO posts(post_category,post_title, post_text) VALUES ('"+ postCategory +"','"+ postTitle +"','"+ postText+"')";
-      LOGGER.info(sql);
-
-      int resultSet= statement.executeUpdate(sql);
-
-
-
-
-      if(resultSet != 0)
-
-          return new Gson().toJson("{\"error\":0,\"message\":\"Success\"}");
-      else
-          LOGGER.info("{'error':1,'message':'Error adding a post'}");
-          return new Gson().toJson("{\"error\":0,\"message\":\"Error adding post\"}");
-
-
-  }
-
-
-  public static String mysql_real_escape_string(String str){
-      if (str == null) {
-          return null;
-      }
-
-      if (str.replaceAll("[a-zA-Z0-9_!@#$%^&*()-=+~.;:,\\Q[\\E\\Q]\\E<>{}\\/? ]","").length() < 1) {
-          return str;
-      }
-
-      String clean_string = str;
-      clean_string = clean_string.replaceAll("\\\\", "\\\\\\\\");
-      clean_string = clean_string.replaceAll("\\n","\\\\n");
-      clean_string = clean_string.replaceAll("\\r", "\\\\r");
-      clean_string = clean_string.replaceAll("\\t", "\\\\t");
-      clean_string = clean_string.replaceAll("\\00", "\\\\0");
-      clean_string = clean_string.replaceAll("'", "\\\\'");
-      clean_string = clean_string.replaceAll("\\\"", "\\\\\"");
-
-      if (clean_string.replaceAll("[a-zA-Z0-9_!@#$%^&*()-=+~.;:,\\Q[\\E\\Q]\\E<>{}\\/?\\\\\"' ]"
-              ,"").length() < 1){
-
-      }
-      
-      return clean_string;
-  }
-    public static Integer tryParse(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
 }
