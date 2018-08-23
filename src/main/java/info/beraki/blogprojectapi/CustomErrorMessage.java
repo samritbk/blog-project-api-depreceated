@@ -1,5 +1,7 @@
 package info.beraki.blogprojectapi;
 
+import com.google.gson.Gson;
+
 public class CustomException extends Exception {
 
     int error;
@@ -12,6 +14,7 @@ public class CustomException extends Exception {
 
     @Override
     public String toString() {
-        return "{\"error\":1,\""+error+"\":\""+error_message+"\"}";
+
+        return new Gson().toJson("{\"error\":1,\"message\":\""+error_message+"\"}");
     }
 }
