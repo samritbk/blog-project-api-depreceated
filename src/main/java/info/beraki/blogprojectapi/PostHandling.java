@@ -1,8 +1,8 @@
 package info.beraki.blogprojectapi;
 
 import com.google.gson.Gson;
-import com.mysql.cj.api.log.Log;
 import info.beraki.blogprojectapi.Model.Post;
+import info.beraki.blogprojectapi.Model.User;
 import org.json.JSONObject;
 
 import java.sql.Connection;
@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import static info.beraki.blogprojectapi.UserHandling.getUser;
 import static info.beraki.blogprojectapi.Util.mysql_real_escape_string;
 
 public class PostHandling {
@@ -37,10 +38,11 @@ public class PostHandling {
             String postTitle=resultSet.getString("post_title");
             String postText=resultSet.getString("post_text");
             Integer postCategory=resultSet.getInt("post_category");
-            Integer postUserId=resultSet.getInt("user_id");
-            Integer dateCreated=resultSet.getInt("date_created");
-            Integer lastModified=resultSet.getInt("last_modified");
+            String postUserId=resultSet.getString("user_id");
+            long dateCreated=resultSet.getLong("date_created");
+            long lastModified=resultSet.getLong("last_modified");
             Integer status=resultSet.getInt("status");
+            User user= getUser(connection, postUserId);
 
             post.setPostId(postId);
             post.setPostTitle(postTitle);
@@ -50,6 +52,7 @@ public class PostHandling {
             post.setDateCreated(dateCreated);
             post.setLastModified(lastModified);
             post.setStatus(status);
+            post.setUser(user);
 
 
             postList.add(post);
@@ -57,58 +60,54 @@ public class PostHandling {
 
         return postList;
     }
-    static List<Post> getPost(Connection connection, int post) throws SQLException, NullPointerException {
+    static Post getPost(Connection connection, int post_id) throws SQLException, NullPointerException {
 
-        List<Post> postList= new ArrayList<>();
-
-        Statement statement =connection.createStatement();
+        Post postObject = null;
+        Statement statement = connection.createStatement();
 
         String sql="SELECT * FROM posts";
-        sql+=" ORDER BY post_id DESC";
-        if(post != 0){
-            sql+="'+user_id+'"+post;
-        }
+        sql+=" WHERE post_id="+post_id;
 
         ResultSet resultSet= statement.executeQuery(sql);
-            Post postObject = new Post();
 
             if(resultSet.next()) {
+                postObject = new Post();
+                    Integer postId = resultSet.getInt("post_id");
+                    String postTitle = resultSet.getString("post_title");
+                    String postText = resultSet.getString("post_text");
+                    Integer postCategory = resultSet.getInt("post_category");
+                    String postUserId = resultSet.getString("user_id");
+                    long dateCreated = resultSet.getLong("date_created");
+                    long lastModified = resultSet.getLong("last_modified");
+                    Integer status = resultSet.getInt("status");
+                    User user= getUser(connection, postUserId);
 
-                Integer postId = resultSet.getInt("post_id");
-                String postTitle = resultSet.getString("post_title");
-                String postText = resultSet.getString("post_text");
-                Integer postCategory = resultSet.getInt("post_category");
-                Integer postUserId = resultSet.getInt("user_id");
-                Integer dateCreated = resultSet.getInt("date_created");
-                Integer lastModified = resultSet.getInt("last_modified");
-                Integer status = resultSet.getInt("status");
-
-                postObject.setPostId(postId);
-                postObject.setPostTitle(postTitle);
-                postObject.setPostText(postText);
-                postObject.setPostCategory(postCategory);
-                postObject.setPostUserId(postUserId);
-                postObject.setDateCreated(dateCreated);
-                postObject.setLastModified(lastModified);
-                postObject.setStatus(status);
-
+                    postObject.setPostId(postId);
+                    postObject.setPostTitle(postTitle);
+                    postObject.setPostText(postText);
+                    postObject.setPostCategory(postCategory);
+                    postObject.setPostUserId(postUserId);
+                    postObject.setDateCreated(dateCreated);
+                    postObject.setLastModified(lastModified);
+                    postObject.setStatus(status);
+                    postObject.setUser(user);
             }
 
-            postList.add(postObject);
-
-            return postList;
-        }
+            return postObject;
+    }
 
 
 
-    private static String addPost(Connection connection, Integer postUserId, Integer postCategory, String postTitle, String postText) throws SQLException, Exception{
+    private static String addPost(Connection connection, String postUserId, Integer postCategory, String postTitle, String postText) throws SQLException, Exception{
+
+        long timestamp= System.currentTimeMillis();
 
         Statement statement =connection.createStatement();
 
         String sql="INSERT INTO " +
-                "posts(user_id, post_category,post_title, post_text) " +
+                "posts(user_id, post_category,post_title, post_text, date_created, last_modified) " +
                 "VALUES " +
-                "('"+ postUserId +"','"+ postCategory +"','"+ postTitle +"','"+ postText+"')";
+                "('"+ postUserId +"','"+ postCategory +"','"+ postTitle +"','"+ postText+"','"+ timestamp +"','"+ timestamp +"')";
 
         int resultSet= statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -120,44 +119,20 @@ public class PostHandling {
 
 
         if(resultSet != 0)
-            return new Gson().toJson("{\"error\":0,\"message\":\"Success\",\"last_id\":\""+lastId+"\"}");
+            return new CustomSuccessMessage(0, "Success",lastId).toString();
         else
-            return new CustomException(1,"Error adding post").toString();
-
+            return new CustomErrorMessage(1,"ErrorModel adding post").toString();
     }
 
 
-//    private static String addUser(Connection connection, Integer userId, String firebaseId, String fullname, String postText) throws SQLException, Exception{
-//
-//        Statement statement =connection.createStatement();
-//
-//        String sql="INSERT INTO " +
-//                "posts(user_id, post_category,post_title, post_text) " +
-//                "VALUES " +
-//                "('"+ postUserId +"','"+ postCategory +"','"+ postTitle +"','"+ postText+"')";
-//
-//        int resultSet= statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-//
-//        ResultSet rs= statement.getGeneratedKeys();
-//
-//        int lastId=0;
-//        if(rs.next())
-//            lastId= rs.getInt(1);
-//
-//
-//        if(resultSet != 0)
-//            return new Gson().toJson("{\"error\":0,\"message\":\"Success\",\"last_id\":\""+lastId+"\"}");
-//        else
-//            return new CustomException(1,"Error adding post").toString();
-//
-//    }
+
 
     public static String handlePost(Connection connection, String reqBody) throws Exception {
 
         String toReturn=null;
 
         JSONObject reqJsonObject=new JSONObject(reqBody);
-        Integer postUserId=reqJsonObject.getInt("postUserId");
+        String postUserId=reqJsonObject.getString("postUserId");
         Integer postCategory=reqJsonObject.getInt("postCategory");
         String postTitle= mysql_real_escape_string(reqJsonObject.getString("postTitle"));
         String postText=mysql_real_escape_string(reqJsonObject.getString("postText"));

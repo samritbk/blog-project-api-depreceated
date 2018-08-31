@@ -4,6 +4,8 @@
     <bytecodeTargetLevel>
       <module name="blog-project-api_main" target="1.8" />
       <module name="blog-project-api_test" target="1.8" />
+      <module name="info.beraki.blogprojectapi_main" target="1.8" />
+      <module name="info.beraki.blogprojectapi_test" target="1.8" />
       <module name="java-spark-boilerplate-master_main" target="1.8" />
       <module name="java-spark-boilerplate-master_test" target="1.8" />
     </bytecodeTargetLevel>

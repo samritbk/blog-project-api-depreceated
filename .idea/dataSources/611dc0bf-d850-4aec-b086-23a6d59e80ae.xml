@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="projectblog@localhost">
-  <database-model serializer="dbm" rdbms="MYSQL" format-version="4.9">
+  <database-model serializer="dbm" rdbms="MYSQL" format-version="4.11">
     <root id="1">
       <ServerVersion>5.5.5</ServerVersion>
       <RdbmsFlavour>MariaDB</RdbmsFlavour>
@@ -989,12 +989,12 @@
     </column>
     <column id="249" parent="246" name="date_created">
       <Position>2</Position>
-      <DataType>int(11)|0s</DataType>
+      <DataType>mediumtext|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
     <column id="250" parent="246" name="last_modified">
       <Position>3</Position>
-      <DataType>int(11)|0s</DataType>
+      <DataType>mediumtext|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
     <column id="251" parent="246" name="post_category">
@@ -1019,7 +1019,7 @@
     </column>
     <column id="255" parent="246" name="user_id">
       <Position>8</Position>
-      <DataType>int(11)|0s</DataType>
+      <DataType>varchar(80)|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
     <key id="256" parent="246" name="PRIMARY">
@@ -1039,27 +1039,33 @@
       <DataType>varchar(80)|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="259" parent="247" name="fullname">
+    <column id="259" parent="247" name="email">
       <Position>3</Position>
+      <DataType>varchar(150)|0s</DataType>
+      <NotNull>1</NotNull>
+      <ColumnKind>normal</ColumnKind>
+    </column>
+    <column id="260" parent="247" name="fullname">
+      <Position>4</Position>
       <DataType>varchar(200)|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="260" parent="247" name="created_timestamp">
-      <Position>4</Position>
-      <DataType>bigint(20)|0s</DataType>
+    <column id="261" parent="247" name="created_timestamp">
+      <Position>5</Position>
+      <DataType>longtext|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <index id="261" parent="247" name="user_id">
+    <index id="262" parent="247" name="user_id">
       <ColNames>user_id</ColNames>
       <Unique>1</Unique>
       <Type>btree</Type>
     </index>
-    <key id="262" parent="247" name="PRIMARY">
+    <key id="263" parent="247" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>user_id</ColNames>
       <Primary>1</Primary>
     </key>
-    <key id="263" parent="247" name="user_id">
+    <key id="264" parent="247" name="user_id">
       <ColNames>user_id</ColNames>
       <UnderlyingIndexName>user_id</UnderlyingIndexName>
     </key>

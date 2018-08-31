@@ -2,19 +2,19 @@ package info.beraki.blogprojectapi;
 
 import com.google.gson.Gson;
 
-public class CustomException extends Exception {
+public class CustomErrorMessage {
 
     int error;
-    String error_message;
+    String message;
 
-    CustomException(int error, String error_message){
+    CustomErrorMessage(int error, String error_message){
         this.error = error;
-        this.error_message = error_message;
+        this.message = error_message;
     }
 
     @Override
     public String toString() {
 
-        return new Gson().toJson("{\"error\":1,\"message\":\""+error_message+"\"}");
+        return new Gson().toJson(this);
     }
 }

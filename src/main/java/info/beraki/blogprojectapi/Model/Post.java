@@ -5,10 +5,11 @@ public class Post {
     private String postTitle;
     private String postText;
     private Integer postCategory;
-    private Integer postUserId;
-    private Integer dateCreated;
-    private Integer lastModified;
+    private String postUserId;
+    private long dateCreated;
+    private long lastModified;
     private Integer status;
+    private User user;
 
     public Integer getPostId() {
         return postId;
@@ -26,15 +27,15 @@ public class Post {
         return postCategory;
     }
 
-    public Integer getPostUserId() {
+    public String getPostUserId() {
         return postUserId;
     }
 
-    public Integer getDateCreated() {
+    public long getDateCreated() {
         return dateCreated;
     }
 
-    public Integer getLastModified() {
+    public long getLastModified() {
         return lastModified;
     }
 
@@ -58,19 +59,27 @@ public class Post {
         this.postCategory = postCategory;
     }
 
-    public void setPostUserId(Integer postUserId) {
+    public void setPostUserId(String postUserId) {
         this.postUserId = postUserId;
     }
 
-    public void setDateCreated(Integer dateCreated) {
+    public void setDateCreated(long dateCreated) {
         this.dateCreated = dateCreated;
     }
 
-    public void setLastModified(Integer lastModified) {
+    public void setLastModified(long lastModified) {
         this.lastModified = lastModified;
     }
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

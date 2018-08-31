@@ -5,6 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/blog-project-api.iml" filepath="$PROJECT_DIR$/.idea/modules/blog-project-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/blog-project-api_main.iml" filepath="$PROJECT_DIR$/.idea/modules/blog-project-api_main.iml" group="blog-project-api" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/blog-project-api_test.iml" filepath="$PROJECT_DIR$/.idea/modules/blog-project-api_test.iml" group="blog-project-api" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi.iml" filepath="$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi_main.iml" filepath="$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi_main.iml" group="info.beraki.blogprojectapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi_test.iml" filepath="$PROJECT_DIR$/.idea/modules/info.beraki.blogprojectapi_test.iml" group="info.beraki.blogprojectapi" />
     </modules>
   </component>
 </project>
