@@ -1,14 +1,14 @@
-package hello.Model;
+package info.beraki.blogprojectapi.Model;
 
 public class Post {
-    Integer postId;
-    String postTitle;
-    String postText;
-    Integer postCategory;
-    Integer postUserId;
-    Integer dateCreated;
-    Integer lastModified;
-    Integer status;
+    private Integer postId;
+    private String postTitle;
+    private String postText;
+    private Integer postCategory;
+    private Integer postUserId;
+    private Integer dateCreated;
+    private Integer lastModified;
+    private Integer status;
 
     public Integer getPostId() {
         return postId;
